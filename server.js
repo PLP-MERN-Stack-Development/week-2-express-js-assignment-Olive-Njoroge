@@ -40,6 +40,11 @@ let products = [
   }
 ];
 
+// Root route
+app.get('/', (req, res) => {
+  res.send('Hello World');
+});
+
 //`GET /api/products`: List all products
 app.get('/api/products', async(req,res) => {
   res.json(products);
@@ -115,20 +120,6 @@ app.delete('/api/products/:id', (req, res) => {
 
   res.send({ message: 'Product deleted successfully', product: deletedProduct[0] });
 });
-
-
-
-// Root route
-app.get('/', (req, res) => {
-  res.send('Hello World');
-});
-
-// TODO: Implement the following routes:
-// GET /api/products - Get all products
-// GET /api/products/:id - Get a specific product
-// POST /api/products - Create a new product
-// PUT /api/products/:id - Update a product
-// DELETE /api/products/:id - Delete a product
 
 // Example route implementation for GET /api/products
 app.get('/api/products', (req, res) => {
