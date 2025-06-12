@@ -1,5 +1,9 @@
 // server.js - Starter Express server for Week 2 assignment
 
+require('dotenv').config();
+const authenticate = require('./middleware/auth.js');
+
+
 // Import required modules
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -17,6 +21,12 @@ app.use(logger);
 
 // Middleware setup
 app.use(bodyParser.json());
+
+//middleware to a protected route for authentication
+app.post('/api/products', authenticate, (req, res) => {
+  res.status(201).json({ message: 'Product created successfully' });
+});
+
 
 // Sample in-memory products database
 let products = [
