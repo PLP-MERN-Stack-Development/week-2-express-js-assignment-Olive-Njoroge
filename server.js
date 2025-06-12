@@ -3,7 +3,6 @@
 require('dotenv').config();
 const authenticate = require('./middleware/auth.js');
 
-
 // Import required modules
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -22,11 +21,24 @@ app.use(logger);
 // Middleware setup
 app.use(bodyParser.json());
 
-//middleware to a protected route for authentication
-app.post('/api/products', authenticate, (req, res) => {
-  res.status(201).json({ message: 'Product created successfully' });
-});
+// Validation middleware
+const validateProduct = (req, res, next) => {
+  const { name, description, price, category, inStock } = req.body;
 
+  const errors = [];
+
+  if (!name || typeof name !== 'string') errors.push('Name is required and must be a string.');
+  if (!description || typeof description !== 'string') errors.push('Description is required and must be a string.');
+  if (price === undefined || typeof price !== 'number') errors.push('Price is required and must be a number.');
+  if (!category || typeof category !== 'string') errors.push('Category is required and must be a string.');
+  if (inStock === undefined || typeof inStock !== 'boolean') errors.push('inStock is required and must be a boolean.');
+
+  if (errors.length > 0) {
+    return res.status(400).json({ message: 'Validation Error', errors });
+  }
+
+  next();
+};
 
 // Sample in-memory products database
 let products = [
@@ -61,30 +73,24 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-//`GET /api/products`: List all products
-app.get('/api/products', async(req,res) => {
+// `GET /api/products`: List all products
+app.get('/api/products', (req, res) => {
   res.json(products);
 });
 
-//`GET /api/products/:id`: Get a specific product by ID
+// `GET /api/products/:id`: Get a specific product by ID
 app.get('/api/products/:id', (req, res) => {
-  const product = products.find(p => p.id === req.params.id); // find product by id in the array
+  const product = products.find(p => p.id === req.params.id);
   if (!product) return res.status(404).send({ message: 'Not Found' });
   res.send(product);
 });
 
-//`POST /api/products`: Create a new product
-app.post('/api/products', (req, res) => {
+// `POST /api/products`: Create a new product (with authentication and validation)
+app.post('/api/products', authenticate, validateProduct, (req, res) => {
   const { name, description, price, category, inStock } = req.body;
 
-  // Simple validation (optional, but recommended)
-  if (!name || !description || price === undefined || !category || inStock === undefined) {
-    return res.status(400).send({ message: 'All fields are required' });
-  }
-
-  // Create new product object with a unique id
   const newProduct = {
-    id: uuidv4(), // generate unique id
+    id: uuidv4(),
     name,
     description,
     price,
@@ -92,60 +98,41 @@ app.post('/api/products', (req, res) => {
     inStock,
   };
 
-  // Add the new product to the array
   products.push(newProduct);
-
-  // Send back the newly created product with 201 Created status
   res.status(201).json(newProduct);
 });
 
-//`PUT /api/products/:id`: Update an existing product
-app.put('/api/products/:id', (req, res) => {
+// `PUT /api/products/:id`: Update an existing product (with validation)
+app.put('/api/products/:id', validateProduct, (req, res) => {
   const productId = req.params.id;
   const updatedData = req.body;
 
-  // Find index of product to update
   const productIndex = products.findIndex(p => p.id === productId);
   if (productIndex === -1) {
     return res.status(404).send({ message: 'Product not found' });
   }
 
-  // Update the product fields with data from request body
   products[productIndex] = {
-    ...products[productIndex],   // keep existing fields
-    ...updatedData,              // override with updated fields
-    id: productId               // ensure id is not changed
+    ...products[productIndex],
+    ...updatedData,
+    id: productId
   };
 
   res.send(products[productIndex]);
 });
 
-
-//`DELETE /api/products/:id`: Delete a product
+// `DELETE /api/products/:id`: Delete a product
 app.delete('/api/products/:id', (req, res) => {
   const productId = req.params.id;
 
-  // Find index of the product to delete
   const productIndex = products.findIndex(p => p.id === productId);
   if (productIndex === -1) {
     return res.status(404).send({ message: 'Product not found' });
   }
 
-  // Remove the product from the array
   const deletedProduct = products.splice(productIndex, 1);
-
   res.send({ message: 'Product deleted successfully', product: deletedProduct[0] });
 });
-
-// Example route implementation for GET /api/products
-app.get('/api/products', (req, res) => {
-  res.json(products);
-});
-
-// TODO: Implement custom middleware for:
-// - Request logging
-// - Authentication
-// - Error handling
 
 // Start the server
 app.listen(PORT, () => {
@@ -153,4 +140,4 @@ app.listen(PORT, () => {
 });
 
 // Export the app for testing purposes
-module.exports = app; 
+module.exports = app;
