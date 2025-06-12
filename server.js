@@ -66,16 +66,56 @@ let products = [
 // Routes
 app.get('/', (req, res) => res.send('Hello World'));
 
+// List all products with filtering and pagination
 app.get('/api/products', wrapAsync(async (req, res) => {
-  res.json(products);
+  const { category, page = 1, limit = 10 } = req.query;
+  let filtered = [...products];
+
+  // Filter by category
+  if (category) {
+    filtered = filtered.filter(p => p.category.toLowerCase() === category.toLowerCase());
+  }
+
+  // Pagination
+  const start = (page - 1) * limit;
+  const paginated = filtered.slice(start, start + Number(limit));
+
+  res.json({
+    page: Number(page),
+    limit: Number(limit),
+    total: filtered.length,
+    products: paginated
+  });
 }));
 
+// Search products by name
+app.get('/api/products/search', wrapAsync(async (req, res) => {
+  const { name } = req.query;
+  if (!name) return res.status(400).json({ message: 'Name query is required' });
+
+  const results = products.filter(p => p.name.toLowerCase().includes(name.toLowerCase()));
+  res.json({ total: results.length, products: results });
+}));
+
+// Get product statistics (e.g., count by category)
+app.get('/api/products/stats', wrapAsync(async (req, res) => {
+  const stats = {};
+
+  products.forEach(p => {
+    stats[p.category] = (stats[p.category] || 0) + 1;
+  });
+
+  res.json({ totalProducts: products.length, countByCategory: stats });
+}));
+
+// Get product by ID
 app.get('/api/products/:id', wrapAsync(async (req, res, next) => {
   const product = products.find(p => p.id === req.params.id);
   if (!product) throw new NotFoundError('Product not found');
   res.json(product);
 }));
 
+// Create new product
 app.post('/api/products', authenticate, validateProduct, wrapAsync(async (req, res) => {
   const { name, description, price, category, inStock } = req.body;
   const newProduct = { id: uuidv4(), name, description, price, category, inStock };
@@ -83,6 +123,7 @@ app.post('/api/products', authenticate, validateProduct, wrapAsync(async (req, r
   res.status(201).json(newProduct);
 }));
 
+// Update existing product
 app.put('/api/products/:id', validateProduct, wrapAsync(async (req, res, next) => {
   const index = products.findIndex(p => p.id === req.params.id);
   if (index === -1) throw new NotFoundError('Product not found');
@@ -91,6 +132,7 @@ app.put('/api/products/:id', validateProduct, wrapAsync(async (req, res, next) =
   res.json(products[index]);
 }));
 
+// Delete product
 app.delete('/api/products/:id', wrapAsync(async (req, res, next) => {
   const index = products.findIndex(p => p.id === req.params.id);
   if (index === -1) throw new NotFoundError('Product not found');
