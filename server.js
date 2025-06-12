@@ -5,9 +5,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 
+// Import the logger middleware
+const logger = require('./middleware/logger');
+
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Use the logger middleware globally
+app.use(logger);
 
 // Middleware setup
 app.use(bodyParser.json());
