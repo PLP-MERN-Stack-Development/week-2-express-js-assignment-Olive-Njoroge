@@ -1,63 +1,283 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=19734250&assignment_repo_type=AssignmentRepo)
-# Express.js RESTful API Assignment
 
-This assignment focuses on building a RESTful API using Express.js, implementing proper routing, middleware, and error handling.
+# Product Management API
 
-## Assignment Overview
+A simple Express.js REST API for managing products, featuring authentication, error handling, filtering, pagination, and search functionality.
 
-You will:
-1. Set up an Express.js server
-2. Create RESTful API routes for a product resource
-3. Implement custom middleware for logging, authentication, and validation
-4. Add comprehensive error handling
-5. Develop advanced features like filtering, pagination, and search
+## 📦 Technologies Used
 
-## Getting Started
+- Node.js
+- Express
+- UUID
+- dotenv
 
-1. Accept the GitHub Classroom assignment invitation
-2. Clone your personal repository that was created by GitHub Classroom
-3. Install dependencies:
-   ```
-   npm install
-   ```
-4. Run the server:
-   ```
-   npm start
-   ```
+---
 
-## Files Included
+## 🚀 Getting Started
 
-- `Week2-Assignment.md`: Detailed assignment instructions
-- `server.js`: Starter Express.js server file
-- `.env.example`: Example environment variables file
+### 1. Clone the repository
 
-## Requirements
+```bash
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
+```
 
-- Node.js (v18 or higher)
-- npm or yarn
-- Postman, Insomnia, or curl for API testing
+### 2. Install dependencies
 
-## API Endpoints
+```bash
+npm install
+```
 
-The API will have the following endpoints:
+### 3. Create a `.env` file
 
-- `GET /api/products`: Get all products
-- `GET /api/products/:id`: Get a specific product
-- `POST /api/products`: Create a new product
-- `PUT /api/products/:id`: Update a product
-- `DELETE /api/products/:id`: Delete a product
+```bash
+touch .env
+```
 
-## Submission
+Add your environment variables in `.env`:
 
-Your work will be automatically submitted when you push to your GitHub Classroom repository. Make sure to:
+```
+PORT=3000
+```
 
-1. Complete all the required API endpoints
-2. Implement the middleware and error handling
-3. Document your API in the README.md
-4. Include examples of requests and responses
+### 4. Run the server
 
-## Resources
+```bash
+npm start
+```
 
-- [Express.js Documentation](https://expressjs.com/)
-- [RESTful API Design Best Practices](https://restfulapi.net/)
-- [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) 
+Server will run at: `http://localhost:3000`
+
+---
+
+## 📘 API Documentation
+
+### Base URL
+
+```
+http://localhost:3000/api/products
+```
+
+---
+
+### ✅ Get All Products
+
+```
+GET /api/products
+```
+
+#### Optional Query Parameters
+
+| Parameter   | Description                      |
+|-------------|----------------------------------|
+| category    | Filter by product category       |
+| page        | Page number for pagination       |
+| limit       | Items per page                   |
+
+#### Example:
+
+```
+GET /api/products?category=electronics&page=1&limit=2
+```
+
+#### Response:
+```json
+{
+  "page": 1,
+  "limit": 2,
+  "total": 2,
+  "products": [
+    {
+      "id": "1",
+      "name": "Laptop",
+      "description": "High-performance laptop",
+      "price": 1200,
+      "category": "electronics",
+      "inStock": true
+    }
+  ]
+}
+```
+
+---
+
+### 🔍 Search Products by Name
+
+```
+GET /api/products/search?name=laptop
+```
+
+#### Response:
+```json
+{
+  "total": 1,
+  "products": [
+    {
+      "id": "1",
+      "name": "Laptop",
+      "description": "High-performance laptop",
+      "price": 1200,
+      "category": "electronics",
+      "inStock": true
+    }
+  ]
+}
+```
+
+---
+
+### 📊 Get Product Statistics
+
+```
+GET /api/products/stats
+```
+
+#### Response:
+```json
+{
+  "totalProducts": 3,
+  "countByCategory": {
+    "electronics": 2,
+    "kitchen": 1
+  }
+}
+```
+
+---
+
+### 🔍 Get Product by ID
+
+```
+GET /api/products/:id
+```
+
+#### Response:
+```json
+{
+  "id": "1",
+  "name": "Laptop",
+  "description": "High-performance laptop",
+  "price": 1200,
+  "category": "electronics",
+  "inStock": true
+}
+```
+
+---
+
+### ➕ Create Product (Requires Auth Header)
+
+```
+POST /api/products
+```
+
+#### Headers:
+```
+Authorization: your-token
+```
+
+#### Body:
+```json
+{
+  "name": "Blender",
+  "description": "500W electric blender",
+  "price": 80,
+  "category": "kitchen",
+  "inStock": true
+}
+```
+
+#### Response:
+```json
+{
+  "id": "generated-uuid",
+  "name": "Blender",
+  "description": "500W electric blender",
+  "price": 80,
+  "category": "kitchen",
+  "inStock": true
+}
+```
+
+---
+
+### ✏️ Update Product
+
+```
+PUT /api/products/:id
+```
+
+#### Body:
+```json
+{
+  "name": "Updated Name",
+  "description": "Updated description",
+  "price": 90,
+  "category": "electronics",
+  "inStock": false
+}
+```
+
+#### Response:
+```json
+{
+  "id": "1",
+  "name": "Updated Name",
+  "description": "Updated description",
+  "price": 90,
+  "category": "electronics",
+  "inStock": false
+}
+```
+
+---
+
+### ❌ Delete Product
+
+```
+DELETE /api/products/:id
+```
+
+#### Response:
+```json
+{
+  "message": "Product deleted successfully",
+  "product": {
+    "id": "1",
+    "name": "Laptop",
+    "description": "High-performance laptop",
+    "price": 1200,
+    "category": "electronics",
+    "inStock": true
+  }
+}
+```
+
+---
+
+## ⚠️ Error Handling
+
+The API uses consistent error responses:
+
+```json
+{
+  "message": "Validation Error",
+  "errors": [
+    "Name is required and must be a string.",
+    "Price is required and must be a number."
+  ]
+}
+```
+
+---
+
+## 🧪 Sample `.env` File
+
+```
+PORT=3000
+```
+
+---
+
+## 📬 Contact
+
+For any issues, please open an issue on GitHub or contact [your email].
